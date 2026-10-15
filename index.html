@@ -1,0 +1,614 @@
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>卜晋渊｜穿越星界个人主页</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+            color: #e6f0ff;
+            background: #020518;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        #bgCanvas {
+            position: fixed;
+            inset: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: -10;
+            display: block;
+        }
+
+        /* 启动穿越封面 */
+        .start-page {
+            width: 100vw;
+            min-height: 100vh;
+            position: relative;
+            z-index: 200;
+            background: radial-gradient(circle at center, #0a1440 0%, #020518 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 40px 20px;
+            transition: opacity 1.2s ease;
+        }
+
+        .start-title {
+            font-size: 34px;
+            letter-spacing: 4px;
+            text-align: center;
+            background: linear-gradient(90deg, #60d0ff, #ffbc70);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            margin-bottom: 30px;
+        }
+
+        .cross-btn {
+            font-size: 20px;
+            padding: 16px 56px;
+            border-radius: 999px;
+            border: 2px solid #48c8ff;
+            background: linear-gradient(120deg, #164bbd, #ff9c44);
+            color: white;
+            cursor: pointer;
+            transition: 0.3s;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .cross-btn:hover {
+            box-shadow: 0 0 35px #38c4ff;
+            transform: scale(1.06);
+        }
+
+        /* 玻璃破碎碎片层 */
+        .break-overlay {
+            position: fixed;
+            inset: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 210;
+            pointer-events: none;
+            visibility: hidden;
+        }
+
+        .shard {
+            position: absolute;
+            background: linear-gradient(135deg, rgba(120, 200, 255, 0.3), rgba(80, 140, 220, 0.1));
+            border: 1px solid rgba(160, 210, 255, 0.6);
+        }
+
+        /* 隧道穿越动画遮罩 */
+        .tunnel-mask {
+            position: fixed;
+            inset: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 205;
+            background: radial-gradient(circle, transparent 10%, #020518 100%);
+            visibility: hidden;
+        }
+
+        /* 主控制面板 */
+        .main-hub {
+            position: relative;
+            z-index: 100;
+            width: 100%;
+            min-height: 100vh;
+            padding: 30px 16px 60px;
+            display: none;
+        }
+
+        .hub-head {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .hub-head h2 {
+            font-size: 24px;
+            color: #82d8ff;
+            margin-bottom: 8px;
+        }
+
+        .hub-head p {
+            color: #a4c8ee;
+            font-size: 15px;
+        }
+
+        .button-grid {
+            max-width: 900px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 16px;
+        }
+
+        .hub-btn-card {
+            background: rgba(22, 34, 70, 0.28);
+            backdrop-filter: blur(14px);
+            border: 1px solid rgba(70, 180, 255, 0.24);
+            border-radius: 16px;
+            padding: 24px 16px;
+            text-align: center;
+            cursor: pointer;
+            transition: 0.35s;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .hub-btn-card:active {
+            transform: translateY(-4px);
+            border-color: rgba(70, 180, 255, 0.7);
+            box-shadow: 0 0 24px rgba(60, 170, 240, 0.25);
+        }
+
+        .hub-btn-card h3 {
+            font-size: 19px;
+            color: #58d4ff;
+            margin-bottom: 8px;
+        }
+
+        .hub-btn-card p {
+            color: #b4d2f5;
+            font-size: 14px;
+        }
+
+        /* 弹窗 */
+        .modal-wrap {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.72);
+            z-index: 150;
+            display: none;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 20px 12px;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .modal-box {
+            width: 100%;
+            max-width: 720px;
+            max-height: 86vh;
+            overflow-y: auto;
+            background: rgba(14, 22, 50, 0.42);
+            backdrop-filter: blur(18px);
+            border: 1px solid rgba(70, 180, 255, 0.28);
+            border-radius: 22px;
+            padding: 24px 20px;
+            margin: auto;
+        }
+
+        .modal-close {
+            float: right;
+            font-size: 26px;
+            cursor: pointer;
+            color: #99c8ee;
+            line-height: 1;
+        }
+
+        .modal-title {
+            font-size: 22px;
+            color: #76d6ff;
+            margin-bottom: 18px;
+            clear: both;
+        }
+
+        .text-para {
+            line-height: 1.9;
+            font-size: 15px;
+            color: #c4ddff;
+            margin-bottom: 16px;
+        }
+
+        /* 手机端进一步缩小 */
+        @media (max-width: 420px) {
+            .start-title {
+                font-size: 26px;
+                letter-spacing: 2px;
+            }
+
+            .cross-btn {
+                font-size: 18px;
+                padding: 14px 44px;
+            }
+
+            .hub-head h2 {
+                font-size: 20px;
+            }
+
+            .hub-btn-card h3 {
+                font-size: 17px;
+            }
+
+            .modal-title {
+                font-size: 20px;
+            }
+
+            .text-para {
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<canvas id="bgCanvas"></canvas>
+
+<!-- 1、初始穿越启动页面 -->
+<div class="start-page" id="startPage">
+    <h1 class="start-title">卜晋渊 · 星界空间</h1>
+    <button class="cross-btn" id="crossBtn">穿越</button>
+</div>
+
+<!-- 隧道转场 -->
+<div class="tunnel-mask" id="tunnelMask"></div>
+
+<!-- 玻璃破碎碎片层 -->
+<div class="break-overlay" id="breakOverlay"></div>
+
+<!-- 2、主控制面板 -->
+<div class="main-hub" id="mainHub">
+    <div class="hub-head">
+        <h2>欢迎抵达我的世界</h2>
+        <p>点击下方按钮，进入不同的内容空间</p>
+    </div>
+
+    <div class="button-grid">
+        <div class="hub-btn-card" onclick="openModal('modHome')">
+            <h3>📄 首页简介</h3>
+            <p>关于我的基础介绍</p>
+        </div>
+        <div class="hub-btn-card" onclick="openModal('modHobby')">
+            <h3>🎯 个人爱好</h3>
+            <p>乒乓球、三国杀、象棋</p>
+        </div>
+        <div class="hub-btn-card" onclick="openModal('modSkill')">
+            <h3>💻 专业技能</h3>
+            <p>C语言、Python、机器视觉</p>
+        </div>
+        <div class="hub-btn-card" onclick="openModal('modStudy')">
+            <h3>📖 学习日常</h3>
+            <p>平时学习与生活状态</p>
+        </div>
+        <div class="hub-btn-card" onclick="openModal('modThought')">
+            <h3>✨ 思想感悟</h3>
+            <p>思考与心得体会</p>
+        </div>
+        <div class="hub-btn-card" onclick="openModal('modFuture')">
+            <h3>🚀 未来规划</h3>
+            <p>短期中期长期目标</p>
+        </div>
+    </div>
+</div>
+
+<!-- 弹窗内容 -->
+<div class="modal-wrap" id="modHome">
+    <div class="modal-box">
+        <span class="modal-close" onclick="closeAllModal()">×</span>
+        <h2 class="modal-title">📄 首页简介</h2>
+        <div class="text-para">
+            欢迎来到我的个人静态网页。这是我利用AI辅助完成的网页项目，用来记录当下的自我状态。我是一名工科专业学生，一边接触计算机编程相关知识，一边保持丰富的课余爱好。
+        </div>
+        <div class="text-para">
+            我相信理性的代码逻辑与感性的生活爱好并不冲突，二者可以相辅相成。敲代码锻炼严谨的思维，体育运动与棋类游戏磨练心态与大局观。在学习的道路上，我始终保持好奇心，愿意接纳新知识，不怕遇到困难与报错。
+        </div>
+        <div class="text-para">
+            遇到不懂的问题我会主动查找资料，尝试调试，不断试错，一点点提升个人能力。这个网页记录现阶段真实的我，记录我的爱好、已经掌握的能力、平时的学习状态以及对未来的思考。
+        </div>
+    </div>
+</div>
+
+<div class="modal-wrap" id="modHobby">
+    <div class="modal-box">
+        <span class="modal-close" onclick="closeAllModal()">×</span>
+        <h2 class="modal-title">🎯 个人爱好</h2>
+        <div class="text-para">
+            <strong>🏓乒乓球</strong><br>
+            快速挥拍对抗，感受赛场瞬息万变的博弈，锻炼反应与心态。乒乓球非常讲究手感、节奏判断以及临场应变能力。训练和对局的过程，既是身体的运动，也是心智的锻炼。在紧张的学习之余，打乒乓球能够释放压力，调整精神状态。输赢并不是最重要的，享受对抗的过程，不断打磨自己的技术，就是打球带给我的收获。
+        </div>
+        <div class="text-para">
+            <strong>🃏三国杀</strong><br>
+            手牌之间策略推演，阅读对手意图，体验心理博弈的乐趣。三国杀融合历史人物设定、卡牌策略、身份博弈。每一局局势千变万化，没有固定必胜套路。需要根据场上角色、手牌情况、队友状态不断调整自己打法。既要分析别人的行为，也要隐藏自己真实目的。它教会我多角度思考问题，不能只站在自己视角看待局面，学会预判他人选择，权衡利弊做出取舍。
+        </div>
+        <div class="text-para">
+            <strong>♟️象棋</strong><br>
+            落子三思，布局谋势，沉静思考，注重全局取舍与步步谋划。象棋是典型的静态策略博弈游戏，一步走错就可能满盘被动。下棋需要足够的耐心，不能贪图眼前小利，要兼顾全局得失。每一次落子之前，要预想后续多步变化。下棋的时候，人会变得冷静克制，学会接受失误，从失败对局里面总结教训。这种三思而后行的习惯，也潜移默化影响我平时做事的方式。
+        </div>
+        <div class="text-para">
+            这三项爱好各有特点，内核相通，都在锻炼思考能力、大局观以及抗压心态。在学习疲惫的时候，投入爱好当中，可以很好调节状态，之后再重新回到学习，效率会更高。爱好不会耽误学习，合理安排时间，二者可以互相促进。
+        </div>
+    </div>
+</div>
+
+<div class="modal-wrap" id="modSkill">
+    <div class="modal-box">
+        <span class="modal-close" onclick="closeAllModal()">×</span>
+        <h2 class="modal-title">💻 专业技能</h2>
+        <div class="text-para">
+            <strong>C语言基础</strong><br>
+            掌握基础语法、分支循环，能够编写基础算法与练习小程序。了解变量、数据类型、运算符、数组、简单函数。可以完成基础作业习题，比如求阶乘、判断奇偶、循环打印图形、简单数值计算。C语言让我理解计算机底层逻辑，体会内存、数据存储的概念。写C代码的过程经常会遇到编译报错，调试报错的过程也锻炼我的排错能力。虽然目前只停留在基础阶段，但我会继续练习，巩固算法思维。
+        </div>
+        <div class="text-para">
+            <strong>Python基础</strong><br>
+            熟悉基础语法，可独立编写命令行程序，处理简单业务逻辑。掌握条件判断、循环、列表字典、函数、文件读写。可以写控制台交互小程序，处理文本读写。相比C语言，Python语法更加简洁高效。我也学会使用VS Code作为开发工具，懂得新建项目文件、保存代码、运行调试。本网页就是使用Python程序自动生成HTML文件得到的，这也是Python文件处理能力的实际小案例。
+        </div>
+        <div class="text-para">
+            <strong>简单视觉项目</strong><br>
+            接触机器视觉方向，实践颜色识别等简易视觉相关开发项目。初步了解图像采集、图像简单处理的流程。尝试过开发板上面的简单视觉案例，理解从摄像头获取画面，再做分析识别的完整流程。视觉项目综合了编程知识，也需要理解图像的基础原理。目前我还处于入门摸索阶段，很多知识点还没有吃透，但我对这个方向抱有浓厚兴趣，希望往后继续深入学习相关知识。
+        </div>
+        <div class="text-para">
+            现阶段我的编程水平属于入门基础，距离真正熟练开发还有很长距离。很多项目我还不能独立完整完成，经常需要查阅资料、参考示例代码。但我明白编程能力靠不断写代码、不断踩坑积累而来。每一次成功运行一段代码，每一次解决报错，都是实实在在的进步。我不害怕写出来的代码简陋，重要的是动手实践。
+        </div>
+    </div>
+</div>
+
+<div class="modal-wrap" id="modStudy">
+    <div class="modal-box">
+        <span class="modal-close" onclick="closeAllModal()">×</span>
+        <h2 class="modal-title">📖 学习日常</h2>
+        <div class="text-para">
+            在日常学习当中，我会分配时间兼顾专业课、编程练习与课余爱好。专业课打好理论基础，课余时间拿出一部分练习代码。编程学习并不是一次性看懂书本就可以掌握，必须动手敲写代码。很多知识点看教程感觉听懂，自己上手写代码就会出现各种各样的错误，缩进错误、语法拼写错误、变量逻辑错误都是家常便饭。
+        </div>
+        <div class="text-para">
+            遇到程序报错的时候，我会认真阅读报错提示，分析错误来源，一步步排查问题。我也会利用网络资源查阅教程，看示例代码，对比自己写的程序，找出差距。我习惯做好简单记录，把经常出错的点记下来，尽量避免重复踩同样的坑。
+        </div>
+        <div class="text-para">
+            除了编程之外，我也会学习英语，积累单词，练习阅读，准备大学英语四六级考试。工科学习离不开英语能力，很多技术文档、参考资料都是英文，具备基础阅读能力对以后学习新技术很有帮助。
+        </div>
+        <div class="text-para">
+            学习的时候我也会注意劳逸结合。长时间坐在电脑前敲代码容易精神疲惫，这个时候我会放下电脑，选择运动或者棋类活动，让大脑换一种思考模式。调整好状态之后，再重新回到学习任务，防止低效内耗式的熬夜学习。
+        </div>
+    </div>
+</div>
+
+<div class="modal-wrap" id="modThought">
+    <div class="modal-box">
+        <span class="modal-close" onclick="closeAllModal()">×</span>
+        <h2 class="modal-title">✨ 思想感悟</h2>
+        <div class="text-para">
+            代码代表理性严谨的逻辑世界，乒乓球、象棋与三国杀，带来现实世界的策略对抗。一边调试程序、排查并解决程序bug，一边在球拍与棋盘之中体会博弈思考的乐趣。
+        </div>
+        <div class="text-para">
+            写程序讲究逻辑严谨，一步逻辑出错，整个程序就达不到预期效果；下棋打球也是如此，一个判断失误就会陷入被动。二者内核有共通之处，都要求冷静分析，客观看待得失。写代码遇到bug不要急躁，对局落子也不能冲动冒进。
+        </div>
+        <div class="text-para">
+            人生也和写代码、下棋一样，不可能每一步都完美。会出现失误，会遇到预料之外的状况。重要的不是永不犯错，而是发现问题之后，愿意静下心寻找解决方案。不要畏惧失败，把每一次出错当作学习机会。
+        </div>
+        <div class="text-para">
+            保持对新技术的好奇心，脚踏实地学习，在理性代码与现实爱好之间寻找属于自己的节奏，稳步向前。不追求一夜之间突飞猛进，看重日复一日微小的积累。
+        </div>
+    </div>
+</div>
+
+<div class="modal-wrap" id="modFuture">
+    <div class="modal-box">
+        <span class="modal-close" onclick="closeAllModal()">×</span>
+        <h2 class="modal-title">🚀 未来规划</h2>
+        <div class="text-para">
+            短期之内，我希望扎实巩固现有的编程基础。把C语言、Python基础吃透，多做习题与小项目，减少低级语法错误。继续探索机器视觉相关的入门案例，多动手实操，而不只是停留在看视频学理论。同时学好学校开设的专业课程，保证专业课成绩，夯实工科底层知识。英语持续积累，完成四六级的目标。
+        </div>
+        <div class="text-para">
+            中期希望可以独立完成更多完整小型项目，不再只能抄写示例代码。能够自己构思需求，设计简单流程，从零实现小工程。拓宽自己的知识面，了解更多计算机相关领域，找到自己更加感兴趣的发展方向。持续保持运动与棋类爱好，维持身心健康，平衡学习与生活。
+        </div>
+        <div class="text-para">
+            长远来看，我希望把学到的技术真正转化为解决实际问题的能力。明白学习没有终点，技术一直在更新迭代，需要一直保持学习习惯。无论未来走向哪一条道路，严谨思考、持续实践、不惧困难的品质，都会一直帮助我向前。
+        </div>
+        <div class="text-para">
+            前路会有很多未知挑战，也会遇到挫折，但我愿意一步一步，踏实往前走。
+        </div>
+    </div>
+</div>
+
+<script>
+// 星际穿越3D星空 + 【新增黑洞、旋转吸积星环】
+const canvas = document.getElementById("bgCanvas");
+const ctx = canvas.getContext("2d");
+let width, height;
+let stars = [];
+
+//黑洞星环参数
+const blackHole = {
+    x: 0,
+    y: 0,
+    radius: 44,
+    ringRotate: 0
+};
+
+function resize() {
+    width = canvas.width = window.innerWidth;
+    height = canvas.height = window.innerHeight;
+    blackHole.x = width * 0.74;
+    blackHole.y = height * 0.26;
+}
+
+resize();
+window.addEventListener("resize", resize);
+
+class Star {
+    constructor() {
+        this.x = (Math.random() - 0.5) * 2000;
+        this.y = (Math.random() - 0.5) * 2000;
+        this.z = Math.random() * 1800;
+    }
+
+    update() {
+        this.z -= 7;
+
+        if (this.z <= 1) {
+            this.z = 1800;
+            this.x = (Math.random() - 0.5) * 2000;
+            this.y = (Math.random() - 0.5) * 2000;
+        }
+    }
+
+    draw() {
+        const fov = 350;
+        const sx = (this.x / this.z) * fov + width / 2;
+        const sy = (this.y / this.z) * fov + height / 2;
+        const size = Math.max(0.3, (1 - this.z / 1800) * 2.8);
+
+        ctx.beginPath();
+        ctx.arc(sx, sy, size, 0, Math.PI * 2);
+        ctx.fillStyle = "rgba(180,220,255," + (1 - this.z / 1800) + ")";
+        ctx.fill();
+    }
+}
+
+for (let i = 0; i < 800; i++) {
+    stars.push(new Star());
+}
+
+function loop() {
+    ctx.fillStyle = "rgba(0,4,24,0.18)";
+    ctx.fillRect(0, 0, width, height);
+
+    for (let s of stars) {
+        s.update();
+        s.draw();
+    }
+
+    // =========绘制黑洞与旋转星环=========
+    const bh = blackHole;
+    bh.ringRotate += 0.007;
+
+    //黑洞引力光晕
+    const gradGravity = ctx.createRadialGradient(bh.x, bh.y, 0, bh.x, bh.y, bh.radius * 3.4);
+    gradGravity.addColorStop(0, "#000000");
+    gradGravity.addColorStop(0.22, "#05001a");
+    gradGravity.addColorStop(0.6, "rgba(70,25,130,0.32)");
+    gradGravity.addColorStop(1, "rgba(0,0,0,0)");
+    ctx.beginPath();
+    ctx.arc(bh.x, bh.y, bh.radius * 3.4, 0, Math.PI * 2);
+    ctx.fillStyle = gradGravity;
+    ctx.fill();
+
+    //旋转倾斜吸积星环
+    ctx.save();
+    ctx.translate(bh.x, bh.y);
+    ctx.rotate(bh.ringRotate);
+    ctx.scale(1, 0.36);
+    ctx.beginPath();
+    ctx.arc(0, 0, bh.radius * 1.85, 0, Math.PI * 2);
+    ctx.strokeStyle = "#ffaa55";
+    ctx.lineWidth = 8;
+    ctx.shadowColor = "#ff7722";
+    ctx.shadowBlur = 26;
+    ctx.stroke();
+    ctx.restore();
+
+    //黑洞本体
+    ctx.beginPath();
+    ctx.arc(bh.x, bh.y, bh.radius, 0, Math.PI * 2);
+    ctx.fillStyle = "#000000";
+    ctx.fill();
+
+    requestAnimationFrame(loop);
+}
+
+loop();
+
+// 玻璃碎片
+const breakOverlay = document.getElementById("breakOverlay");
+
+function createShards() {
+    breakOverlay.innerHTML = "";
+
+    for (let i = 0; i < 32; i++) {
+        let s = document.createElement("div");
+        s.className = "shard";
+
+        let size = 40 + Math.random() * 130;
+        s.style.width = size + "px";
+        s.style.height = size + "px";
+        s.style.left = Math.random() * 100 + "%";
+        s.style.top = Math.random() * 100 + "%";
+
+        let angle = Math.random() * 360;
+        s.style.transform = "rotate(" + angle + "deg)";
+
+        breakOverlay.appendChild(s);
+    }
+}
+
+// 穿越流程
+const crossBtn = document.getElementById("crossBtn");
+const startPage = document.getElementById("startPage");
+const mainHub = document.getElementById("mainHub");
+const tunnelMask = document.getElementById("tunnelMask");
+
+crossBtn.onclick = async function () {
+    createShards();
+    breakOverlay.style.visibility = "visible";
+    tunnelMask.style.visibility = "visible";
+
+    tunnelMask.animate([
+        { background: "radial-gradient(circle,transparent 30%,#020518 100%)" },
+        { background: "radial-gradient(circle,transparent 0%,#020518 100%)" }
+    ], { duration: 1100 });
+
+    const shards = breakOverlay.querySelectorAll(".shard");
+
+    shards.forEach(function (sh) {
+        let moveX = (Math.random() - 0.5) * 1200;
+        let moveY = (Math.random() - 0.5) * 1200;
+
+        sh.animate([
+            { transform: sh.style.transform + " translate(0,0)", opacity: 0.9 },
+            { transform: sh.style.transform + " translate(" + moveX + "px," + moveY + "px) rotate(" + Math.random() * 720 + "deg)", opacity: 0 }
+        ], { duration: 1200, easing: "ease-out" });
+    });
+
+    await sleep(1300);
+
+    startPage.style.opacity = 0;
+
+    await sleep(1200);
+
+    startPage.style.display = "none";
+    tunnelMask.style.visibility = "hidden";
+    breakOverlay.style.visibility = "hidden";
+    mainHub.style.display = "block";
+};
+
+function sleep(ms) {
+    return new Promise(function (r) {
+        setTimeout(r, ms);
+    });
+}
+
+// 弹窗
+function openModal(id) {
+    document.getElementById(id).style.display = "flex";
+    document.body.style.overflow = "hidden";
+}
+
+function closeAllModal() {
+    document.querySelectorAll(".modal-wrap").forEach(function (m) {
+        m.style.display = "none";
+    });
+    document.body.style.overflow = "";
+}
+
+document.querySelectorAll(".modal-wrap").forEach(function (modal) {
+    modal.addEventListener("click", function (e) {
+        if (e.target === modal) {
+            closeAllModal();
+        }
+    });
+});
+</script>
+
+</body>
+</html>
